@@ -5,9 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.provider.BaseColumns;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -15,110 +13,121 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    private EditText txtid, txtNombre, txtCedula, txtTelefono, txtCorreo, txtCiudad;
+    private EditText txtid;
+    private EditText txtNombre;
+    private EditText txtCedula;
+    private EditText txtTelefono;
+    private EditText txtCorreo;
+    private EditText txtCiudad;
 
     private FeedReaderHelper dbHelper;
-    Button btnGuardar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //txtid = findViewById(R.id.txtid);
+        txtid = findViewById(R.id.txtid);
         txtNombre = findViewById(R.id.etNombre);
         txtCedula = findViewById(R.id.etCedula);
         txtTelefono = findViewById(R.id.etTelefono);
         txtCorreo = findViewById(R.id.etCorreo);
         txtCiudad = findViewById(R.id.etCiudad);
-        btnGuardar = findViewById(R.id.btnGuardar);
 
         dbHelper = new FeedReaderHelper(this);
-
-        btnGuardar.setOnClickListener(v -> {
-
-            String nombre = txtNombre.getText().toString();
-            String cedula = txtCedula.getText().toString();
-            String telefono = txtTelefono.getText().toString();
-            String correo = txtCorreo.getText().toString();
-            String ciudad = txtCiudad.getText().toString();
-
-            boolean guardado = dbHelper.insertarPersona(
-                    nombre,
-                    cedula,
-                    telefono,
-                    correo,
-                    ciudad
-            );
-
-            if (guardado) {
-                Toast.makeText(this, "Datos guardados correctamente", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Error al guardar los datos", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
-    protected void onDestroy(){
+
+    @Override
+    protected void onDestroy() {
         dbHelper.close();
         super.onDestroy();
     }
-    public void Listar(View vista) {
-        startActivity(new Intent(this, listado.class));
-    }
+
     public void Guardar(View vista) {
+
         String nombre = txtNombre.getText().toString().trim();
         String cedula = txtCedula.getText().toString().trim();
         String telefono = txtTelefono.getText().toString().trim();
         String correo = txtCorreo.getText().toString().trim();
         String ciudad = txtCiudad.getText().toString().trim();
 
-        if(nombre.isEmpty()){
+        if (nombre.isEmpty()) {
             mostrarMensaje("Ingrese nombre y apellido");
             return;
         }
-        if(cedula.isEmpty()){
-            mostrarMensaje("Ingrese su numero de cedula");
+
+        if (cedula.isEmpty()) {
+            mostrarMensaje("Ingrese su número de cédula");
             return;
         }
-        if(telefono.isEmpty()){
-            mostrarMensaje("Ingrese su numero de telefono");
+
+        if (telefono.isEmpty()) {
+            mostrarMensaje("Ingrese su número de teléfono");
             return;
         }
-        if(ciudad.isEmpty()){
+
+        if (correo.isEmpty()) {
+            mostrarMensaje("Ingrese su correo electrónico");
+            return;
+        }
+
+        if (ciudad.isEmpty()) {
             mostrarMensaje("Ingrese la ciudad en donde vive");
             return;
         }
+
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+
         ContentValues values = new ContentValues();
+
         values.put(FeedReaderContract.FeedEntry.column1, nombre);
         values.put(FeedReaderContract.FeedEntry.column2, cedula);
-        values.put(FeedReaderContract.FeedEntry.column1, telefono);
-        values.put(FeedReaderContract.FeedEntry.column1, correo);
-        values.put(FeedReaderContract.FeedEntry.column1, ciudad);
-        long newRowID = db.insert(FeedReaderContract.FeedEntry.nameTable, null, values);
-        if (newRowID == -1){
+        values.put(FeedReaderContract.FeedEntry.column3, telefono);
+        values.put(FeedReaderContract.FeedEntry.column4, correo);
+        values.put(FeedReaderContract.FeedEntry.column5, ciudad);
+
+        long newRowId = db.insert(
+                FeedReaderContract.FeedEntry.nameTable,
+                null,
+                values
+        );
+
+        if (newRowId == -1) {
             mostrarMensaje("No se pudo guardar el registro");
         } else {
-            txtid.setText(String.valueOf(newRowID));
-            mostrarMensaje("Se guardo el registro con clave: " + newRowID);
+            txtid.setText(String.valueOf(newRowId));
+
+            mostrarMensaje(
+                    "Se guardó el registro con clave: " + newRowId
+            );
         }
     }
 
     public void Buscar(View vista) {
+
         String id = leerId();
-        if ( id == null) return;
+
+        if (id == null) {
+            return;
+        }
+
         SQLiteDatabase db = dbHelper.getReadableDatabase();
+
         String[] projection = {
-                BaseColumns._ID,
+                FeedReaderContract.FeedEntry._ID,
                 FeedReaderContract.FeedEntry.column1,
                 FeedReaderContract.FeedEntry.column2,
                 FeedReaderContract.FeedEntry.column3,
                 FeedReaderContract.FeedEntry.column4,
                 FeedReaderContract.FeedEntry.column5
         };
-        String selection = FeedReaderContract.FeedEntry._ID + " = ? ";
+
+        String selection =
+                FeedReaderContract.FeedEntry._ID + " = ?";
+
         String[] selectionArgs = {id};
-        try ( Cursor cursor = db.query(
+
+        try (Cursor cursor = db.query(
                 FeedReaderContract.FeedEntry.nameTable,
                 projection,
                 selection,
@@ -127,62 +136,212 @@ public class MainActivity extends AppCompatActivity {
                 null,
                 null
         )) {
+
             if (cursor.moveToFirst()) {
-                txtNombre.setText(cursor.getString(
-                        cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.column1)));
-                txtCedula.setText(cursor.getString(
-                        cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.column1)));
-                txtTelefono.setText(cursor.getString(
-                        cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.column1)));
-                txtCorreo.setText(cursor.getString(
-                        cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.column1)));
-                txtCiudad.setText(cursor.getString(
-                        cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.column1)));
+
+                txtNombre.setText(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        FeedReaderContract.FeedEntry.column1
+                                )
+                        )
+                );
+
+                txtCedula.setText(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        FeedReaderContract.FeedEntry.column2
+                                )
+                        )
+                );
+
+                txtTelefono.setText(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        FeedReaderContract.FeedEntry.column3
+                                )
+                        )
+                );
+
+                txtCorreo.setText(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        FeedReaderContract.FeedEntry.column4
+                                )
+                        )
+                );
+
+                txtCiudad.setText(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        FeedReaderContract.FeedEntry.column5
+                                )
+                        )
+                );
+
+                mostrarMensaje("Registro encontrado");
+
             } else {
+
                 txtNombre.setText("");
-                txtCiudad.setText("");
+                txtCedula.setText("");
                 txtTelefono.setText("");
                 txtCorreo.setText("");
                 txtCiudad.setText("");
-                mostrarMensaje("No existe un registro Id " + id);
+
+                mostrarMensaje(
+                        "No existe un registro con Id " + id
+                );
             }
         }
     }
 
     public void Actualizar(View vista) {
+
         String id = leerId();
-        if(id == null) return;
+
+        if (id == null) {
+            return;
+        }
+
         String nombre = txtNombre.getText().toString().trim();
         String cedula = txtCedula.getText().toString().trim();
         String telefono = txtTelefono.getText().toString().trim();
         String correo = txtCorreo.getText().toString().trim();
         String ciudad = txtCiudad.getText().toString().trim();
+
         if (nombre.isEmpty()) {
             mostrarMensaje("Ingrese nombre y apellido");
             return;
         }
-        if(cedula.isEmpty()){
-            mostrarMensaje("Ingrese su numero de cedula");
+
+        if (cedula.isEmpty()) {
+            mostrarMensaje("Ingrese su número de cédula");
             return;
         }
-        if(telefono.isEmpty()){
-            mostrarMensaje("Ingrese su numero de telefono");
+
+        if (telefono.isEmpty()) {
+            mostrarMensaje("Ingrese su número de teléfono");
             return;
         }
-        if(ciudad.isEmpty()){
+
+        if (correo.isEmpty()) {
+            mostrarMensaje("Ingrese su correo electrónico");
+            return;
+        }
+
+        if (ciudad.isEmpty()) {
             mostrarMensaje("Ingrese la ciudad en donde vive");
             return;
         }
+
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+
         ContentValues values = new ContentValues();
+
         values.put(FeedReaderContract.FeedEntry.column1, nombre);
         values.put(FeedReaderContract.FeedEntry.column2, cedula);
-        values.put(FeedReaderContract.FeedEntry.column1, telefono);
-        values.put(FeedReaderContract.FeedEntry.column1, correo);
-        values.put(FeedReaderContract.FeedEntry.column1, ciudad);
-        String selection = FeedReaderContract.FeedEntry._ID + " = ?";
+        values.put(FeedReaderContract.FeedEntry.column3, telefono);
+        values.put(FeedReaderContract.FeedEntry.column4, correo);
+        values.put(FeedReaderContract.FeedEntry.column5, ciudad);
+
+        String selection =
+                FeedReaderContract.FeedEntry._ID + " = ?";
+
         String[] selectionArgs = {id};
-        int count = db.update(FeedReaderContract.FeedEntry.nameTable, values, selection, selectionArgs);
-        mostrarMensaje("Se actualizo " + count + " registro(s)");
+
+        int count = db.update(
+                FeedReaderContract.FeedEntry.nameTable,
+                values,
+                selection,
+                selectionArgs
+        );
+
+        if (count > 0) {
+            mostrarMensaje("Registro actualizado correctamente");
+        } else {
+            mostrarMensaje("No existe un registro con ese ID");
+        }
+    }
+
+    public void Eliminar(View vista) {
+
+        String id = leerId();
+
+        if (id == null) {
+            return;
+        }
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        String selection =
+                FeedReaderContract.FeedEntry._ID + " = ?";
+
+        String[] selectionArgs = {id};
+
+        int deletedRows = db.delete(
+                FeedReaderContract.FeedEntry.nameTable,
+                selection,
+                selectionArgs
+        );
+
+        if (deletedRows > 0) {
+
+            limpiarCampos();
+
+            mostrarMensaje(
+                    "Registro eliminado correctamente"
+            );
+
+        } else {
+
+            mostrarMensaje(
+                    "No existe un registro con ese ID"
+            );
+        }
+    }
+
+    public void Listar(View vista) {
+
+        Intent intent =
+                new Intent(this, listado.class);
+
+        startActivity(intent);
+    }
+
+    private String leerId() {
+
+        String id =
+                txtid.getText().toString().trim();
+
+        if (id.isEmpty()) {
+
+            mostrarMensaje(
+                    "Ingrese el ID del registro"
+            );
+
+            return null;
+        }
+
+        return id;
+    }
+
+    private void limpiarCampos() {
+
+        txtid.setText("");
+        txtNombre.setText("");
+        txtCedula.setText("");
+        txtTelefono.setText("");
+        txtCorreo.setText("");
+        txtCiudad.setText("");
+    }
+
+    private void mostrarMensaje(String mensaje) {
+
+        Toast.makeText(
+                this,
+                mensaje,
+                Toast.LENGTH_LONG
+        ).show();
     }
 }

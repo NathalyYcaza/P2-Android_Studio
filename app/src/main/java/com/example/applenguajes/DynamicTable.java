@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -34,52 +33,136 @@ public class DynamicTable {
 
     private TextView celda;
 
-    public DynamicTable(TableLayout tabla, Context contexto){
+    public DynamicTable(
+            TableLayout tabla,
+            Context contexto
+    ) {
+
         this.tabla = tabla;
         this.contexto = contexto;
     }
 
-    public void setCabecera(String[] cabecera){ this.cabecera = cabecera;}
-    public void setDatos(ArrayList<String[]> datos){this.datos = datos;}
-    private void nuevaFila() {fila = new TableRow(contexto);}
+    public void setCabecera(String[] cabecera) {
+
+        this.cabecera = cabecera;
+    }
+
+    public void setDatos(ArrayList<String[]> datos) {
+
+        this.datos = datos;
+    }
+
+    private void nuevaFila() {
+
+        fila = new TableRow(contexto);
+    }
+
     private void nuevaCelda() {
+
         celda = new TextView(contexto);
+
         celda.setGravity(Gravity.CENTER);
-        celda.setPadding(24,16,24,16);
+
+        celda.setPadding(
+                24,
+                16,
+                24,
+                16
+        );
+
         celda.setTextSize(14);
     }
-    public void crearCabecera(){
+
+    public void crearCabecera() {
+
         nuevaFila();
-        for(String titulo: cabecera){
+
+        for (String titulo : cabecera) {
+
             nuevaCelda();
+
             celda.setText(titulo);
+
             celda.setTextSize(18);
-            celda.setTypeface(null, Typeface.BOLD);
-            celda.setTextColor(Color.WHITE);
-            celda.setBackgroundColor(COLOR_CABECERA);
-            fila.addView(celda, parametrosCelda());
+
+            celda.setTypeface(
+                    null,
+                    Typeface.BOLD
+            );
+
+            celda.setTextColor(
+                    Color.WHITE
+            );
+
+            celda.setBackgroundColor(
+                    COLOR_CABECERA
+            );
+
+            fila.addView(
+                    celda,
+                    parametrosCelda()
+            );
         }
+
         tabla.addView(fila);
     }
-    public void crearFilas(){
+
+    public void crearFilas() {
+
         int numeroFila = 0;
-        for(String[] datosfila: datos){
+
+        for (String[] datosFila : datos) {
+
             nuevaFila();
-            int colorFondo = (numeroFila % 2 == 0) ? COLOR_FILA_PAR : COLOR_FILA_IMPAR;
-            for(String dato : datosfila){
+
+            int colorFondo =
+                    (numeroFila % 2 == 0)
+                            ? COLOR_FILA_PAR
+                            : COLOR_FILA_IMPAR;
+
+            for (String dato : datosFila) {
+
+                nuevaCelda();
+
                 celda.setText(dato);
+
                 celda.setTextSize(16);
-                celda.setBackgroundColor(colorFondo);
-                fila.addView(celda, parametrosCelda());
+
+                celda.setTextColor(
+                        Color.BLACK
+                );
+
+                celda.setBackgroundColor(
+                        colorFondo
+                );
+
+                fila.addView(
+                        celda,
+                        parametrosCelda()
+                );
             }
+
             tabla.addView(fila);
+
             numeroFila++;
         }
     }
-    private TableRow.LayoutParams parametrosCelda(){
-        TableRow.LayoutParams parametros = new TableRow.LayoutParams();
-        parametros.setMargins(1,1,1,1);
-        parametros.weight = 1;
+
+    private TableRow.LayoutParams parametrosCelda() {
+
+        TableRow.LayoutParams parametros =
+                new TableRow.LayoutParams(
+                        TableRow.LayoutParams.WRAP_CONTENT,
+                        TableRow.LayoutParams.WRAP_CONTENT
+                );
+
+        parametros.setMargins(
+                1,
+                1,
+                1,
+                1
+        );
+
         return parametros;
     }
 }
